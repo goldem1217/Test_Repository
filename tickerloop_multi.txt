@@ -1,0 +1,147 @@
+Sub fancytickerloop_multi()
+
+'for each loop
+
+Dim ws As Worksheet
+        
+For Each ws In ActiveWorkbook.Worksheets
+
+'establish variables:
+
+'for loops
+Dim i As Long
+Dim j As Long
+
+'volume counter
+Dim vol_count As Double
+    vol_count = 0
+
+'ticker symbol value
+Dim ticker As String
+    ticker = ws.Range("A2").Value
+    
+'opening and closing prices and dependent variables
+Dim open_price As Double
+Dim close_price As Double
+Dim change As Double
+Dim percent_change As Double
+
+'find last row of the whole sheet
+Dim last_row As Long
+    last_row = ws.Cells(Rows.Count, 1).End(xlUp).Row
+            
+'find placement for each line of results
+Dim next_row As Long
+    next_row = ws.Cells(Rows.Count, 9).End(xlUp).Row + 1
+    
+'title and format the results columns
+ws.Cells(1, 9).Value = "Ticker"
+ws.Cells(1, 10).Value = "Yearly Change"
+ws.Cells(1, 11).Value = "Percent Change"
+ws.Cells(1, 12).Value = "Total Stock Volume"
+ws.Range("I1:L1").Font.Bold = True
+ws.Range("I1:L1").HorizontalAlignment = xlCenter
+
+ws.Columns(9).ColumnWidth = 10
+ws.Columns(10).ColumnWidth = 15
+ws.Columns(11).ColumnWidth = 15
+ws.Columns(11).numberformat = "0.00%"
+ws.Columns(12).ColumnWidth = 20
+ws.Columns(12).numberformat = "0"
+
+
+    
+'establish placeholder to make code work all the way down
+    ws.Cells(last_row + 1, 1).Value = "end"
+        
+'check the first column for ticker symbol value
+
+
+For j = 2 To last_row + 1
+
+'grab the opening price for the first day of the year
+
+    If ws.Cells(j, 1).Value = ticker And ws.Cells(j - 1, 1).Value <> ticker Then
+        open_price = ws.Cells(j, 3).Value
+    
+    ElseIf ws.Cells(j, 1).Value = ticker Then
+        
+'sum the volume for the current ticker symbol
+'stop summing when a new ticker symbol is reached
+'set j = i to avoid unnecessary loops
+
+        For i = j To last_row
+
+            If ws.Cells(i, 1).Value = ticker Then
+   
+                vol_count = vol_count + ws.Cells(i, 7).Value
+                
+            Else: Exit For
+               
+            End If
+            
+            j = i
+
+        Next i
+   
+    ElseIf ws.Cells(j, 1).Value <> ticker Then
+    
+'grab the closing price for the year and calculate stuff
+        close_price = ws.Cells(j, 6).Value
+        change = close_price - open_price
+        percent_change = (close_price - open_price) / open_price
+                
+'find the next open row in the target columns
+        next_row = ws.Cells(Rows.Count, 9).End(xlUp).Row + 1
+
+'print data in target columns
+        ws.Cells(next_row, 9).Value = ticker
+        ws.Cells(next_row, 10).Value = change
+        ws.Cells(next_row, 11).Value = percent_change
+        ws.Cells(next_row, 12).Value = vol_count
+   
+'change the ticker string assignment and reset the volume counter
+        ticker = ws.Cells(j, 1).Value
+        vol_count = 0
+        
+    End If
+        
+Next j
+
+'remove evidence of placeholder
+ws.Cells(last_row + 1, 1).Value = ""
+
+
+'colors!
+
+Dim r As Range
+
+Set r = ws.Range("J:J")
+
+Dim rcell As Object
+
+Set rcell = ws.Range("J2")
+
+
+For Each rcell In r
+
+    If rcell = "" Then
+        Exit For
+            
+    ElseIf rcell >= 0 Then
+        rcell.Interior.Color = 5296274
+
+    ElseIf rcell < 0 Then
+        rcell.Interior.Color = 255
+    
+    End If
+         
+Next rcell
+ 
+'end for each loop
+Next ws
+
+    
+End Sub
+
+
